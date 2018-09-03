@@ -13,7 +13,7 @@ import java.util.List;
 public class WithdrawalRepository {
 
     private WithdrawalDao mWithdrawalDao;
-    private LiveData<List<WithdrawalItem>> mWithdrawalList;
+    private List<WithdrawalItem> mWithdrawalList;
 
     WithdrawalRepository(Application application){
         WithdrawalDatabase db = WithdrawalDatabase.getDatabase(application);
@@ -21,8 +21,20 @@ public class WithdrawalRepository {
         mWithdrawalList = mWithdrawalDao.getAll();
     }
 
-    LiveData<List<WithdrawalItem>> getAllItem(){
+    List<WithdrawalItem> getAllItem(){
         return mWithdrawalList;
+    }
+
+    int getCount(){
+        return mWithdrawalDao.countItems();
+    }
+
+    int getLastItemID(){
+       return mWithdrawalList.get(getCount() - 1).getId();
+    }
+
+    public  void nukeTable(){
+        mWithdrawalDao.nukeTable();
     }
 
     public void insert(WithdrawalItem withdrawalItem){

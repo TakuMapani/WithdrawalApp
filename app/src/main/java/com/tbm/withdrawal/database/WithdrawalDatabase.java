@@ -6,7 +6,7 @@ import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
 
-@Database(entities = {WithdrawalItem.class}, version = 1)
+@Database(entities = {WithdrawalItem.class}, version = 1, exportSchema = false)
 public abstract class WithdrawalDatabase extends RoomDatabase {
 
     public abstract WithdrawalDao withdrawalDao();

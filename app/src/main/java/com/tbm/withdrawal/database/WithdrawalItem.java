@@ -2,6 +2,7 @@ package com.tbm.withdrawal.database;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -9,7 +10,7 @@ import android.support.annotation.NonNull;
 @Entity(tableName = "withdrawal_list")
 public class WithdrawalItem {
 
-    private static int ID_COUNT = 0;
+    //private static int ID_COUNT = 0;
 
     @PrimaryKey
     @NonNull
@@ -21,15 +22,40 @@ public class WithdrawalItem {
     @ColumnInfo
     private int amount;
 
-    @ColumnInfo
-    private int countWtihdrawal;
+    //Replaced with static variable count might change
+   /* @ColumnInfo
+    private int countWtihdrawal;*/
 
-    public WithdrawalItem(String month, int amount, int countWtihdrawal) {
-        this.id = ID_COUNT;
-        ID_COUNT++;
+    /**
+     * The static declaration for @count is used for the id
+     * The set count is used whenever the database is update as it is static
+     */
+    private static int count;
+
+    public static int getCount() {
+        return count;
+    }
+
+    // TODO: 3/09/2018 find a better way of updating count 
+    public static void setCount(int count) {
+        WithdrawalItem.count = count;
+    }
+
+    public WithdrawalItem( int amount, String month) {
+        //this is used to set the ID and also the number of times withdrawn
+        count = this.count + 1;
+        this.id = count;
         this.month = month;
         this.amount = amount;
-        this.countWtihdrawal = countWtihdrawal;
+        //this.countWtihdrawal = countWtihdrawal;
+    }
+
+    @Ignore
+    public WithdrawalItem(@NonNull int withdrawalD, int withdrawalAmount, String withdrawalMonth) {
+        this.count = withdrawalD;
+        this.id = this.count;
+        this.amount = withdrawalAmount;
+        this.month = withdrawalMonth;
     }
 
     @NonNull
@@ -57,11 +83,5 @@ public class WithdrawalItem {
         this.amount = amount;
     }
 
-    public int getCountWtihdrawal() {
-        return countWtihdrawal;
-    }
 
-    public void setCountWtihdrawal(int countWtihdrawal) {
-        this.countWtihdrawal = countWtihdrawal;
-    }
 }
