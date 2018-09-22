@@ -11,7 +11,7 @@ import java.util.List;
 public class WithdrawalViewModel extends AndroidViewModel {
 
     private WithdrawalRepository mRepository;
-    private List<WithdrawalItem> mWithdrawalList;
+    private LiveData<List<WithdrawalItem>> mWithdrawalList;
 
     public WithdrawalViewModel (Application application){
         super(application);
@@ -19,11 +19,25 @@ public class WithdrawalViewModel extends AndroidViewModel {
         mWithdrawalList = mRepository.getAllItem();
     }
 
-    public List<WithdrawalItem> getmWithdrawalList() {
+    public LiveData<List<WithdrawalItem>> getmWithdrawalList() {
         return mWithdrawalList;
     }
 
     public void insert(WithdrawalItem withdrawalItem){
         mRepository.insert(withdrawalItem);
     }
+
+    public void delete(){
+        mRepository.nukeTable();
+    }
+
+    public WithdrawalItem lastItem (){
+        return mRepository.getLastItem();
+    }
+
+    public int count(){
+        return mRepository.count();
+    }
+
+
 }

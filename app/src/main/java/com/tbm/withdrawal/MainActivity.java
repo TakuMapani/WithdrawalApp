@@ -1,11 +1,14 @@
 package com.tbm.withdrawal;
 
 import android.app.Application;
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.arch.persistence.room.Ignore;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -24,24 +27,24 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private WithdrawalRepository withdrawalRepository;
+    private WithdrawalViewModel mViewModel;
     private Calendar calendar;
 
     private TextView monthTV;
     private TextView countTV;
     private TextView amountTV;
     private static String month;
-    private List<WithdrawalItem> withdrawalItemList;
+    //private LiveData<List<WithdrawalItem>> withdrawalItemList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-       // Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        // Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
 
-        withdrawalRepository = new WithdrawalRepository(getApplication());
-        withdrawalItemList = withdrawalRepository.getAllItem();
+        mViewModel = ViewModelProviders.of(this).get(WithdrawalViewModel.class);
+        //withdrawalItemList = mViewModel.getmWithdrawalList();
         calendar = Calendar.getInstance();
 
         month = getMonthForInt(calendar.get(Calendar.MONTH));
@@ -54,33 +57,52 @@ public class MainActivity extends AppCompatActivity {
 
         updateViews();
 
+
+
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.add_withdrawal);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (withdrawalItemList.size() != 0) {
-                    countTV.setText("Withdrawal times: " + (withdrawalRepository.getLastItemID() + 1));
-                    amountTV.setText("Amount: $" + (withdrawalRepository.getLastItemID() * 50 + 50));
 
-                    withdrawalRepository.insert(new WithdrawalItem(withdrawalRepository.getCount() * 50, month));
-                    withdrawalItemList.clear();
-                    withdrawalItemList = withdrawalRepository.getAllItem();
-                    withdrawalItemList.get(0).setCount(withdrawalRepository.getCount());
+
+                if (mViewModel.count() != 0) {
+                    mViewModel.insert(new WithdrawalItem(mViewModel.count() * 50 , month));
+                    mViewModel.lastItem().setCount(mViewModel.count());
 
                 } else {
-                    countTV.setText("Withdrawl times: 1");
-                    amountTV.setText("Amount: $50");
+                    mViewModel.insert(new WithdrawalItem(1, 50, month));
 
-                   withdrawalRepository.insert(new WithdrawalItem(1, 50, month));
-                    withdrawalItemList.clear();
-                    withdrawalItemList = withdrawalRepository.getAllItem();
-                    withdrawalItemList.get(0).setCount(withdrawalRepository.getCount());
                 }
+
+
+                mViewModel.getmWithdrawalList().observe(MainActivity.this, new Observer<List<WithdrawalItem>>() {
+                    @Override
+                    public void onChanged(@Nullable List<WithdrawalItem> withdrawalItems) {
+                        /*new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {*/
+                        if (mViewModel.count() > 1) {
+                            countTV.setText("Withdrawal times: " + ((mViewModel.lastItem().getId()) + 1));
+                            amountTV.setText("Amount: $" + (mViewModel.lastItem().getId() * 50 + 50));
+
+                        } else {
+                            countTV.setText("Withdrawl times: 1");
+                            amountTV.setText("Amount: $50");
+
+                        }
+                        /*    }
+                        },10);*/
+
+                    }
+                });
 
                /* Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();*/
             }
         });
+
+
 
 
     }
@@ -89,11 +111,11 @@ public class MainActivity extends AppCompatActivity {
      * @updateViews populates the views when the oncreate is called
      */
     private void updateViews() {
-        if (withdrawalItemList.size() != 0) {
-            if (withdrawalItemList.get(0).getMonth().equals(month)) {
-                countTV.setText("Withdrawal times: " + (withdrawalRepository.getLastItemID()));
-                amountTV.setText("Amount: $" + (withdrawalRepository.getLastItemID() * 50));
-                withdrawalItemList.get(0).setCount(withdrawalRepository.getCount());
+        if (mViewModel.count() != 0) {
+            if (mViewModel.lastItem().getMonth().equals(month)) {
+                countTV.setText("Withdrawal times: " + ((mViewModel.lastItem().getId())-1));
+                amountTV.setText("Amount: $" + ((mViewModel.lastItem().getId()-1) * 50));
+               // withdrawalItemList.get(0).setCount(withdrawalRepository.getCount());
             } else {
                 resetDatabase();
             }
@@ -119,11 +141,11 @@ public class MainActivity extends AppCompatActivity {
      * @resetDatabase used to clear database on a new month
      */
     private void resetDatabase() {
-        withdrawalRepository.nukeTable();
-        withdrawalItemList.get(0).setCount(0);
+        mViewModel.delete();
+       /* withdrawalItemList.get(0).setCount(0);
         withdrawalItemList.clear();
         withdrawalItemList = withdrawalRepository.getAllItem();
-
+*/
         amountTV.setText("Withdrawl amount: $0");
         countTV.setText("Withdrawl times: 0");
     }

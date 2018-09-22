@@ -16,9 +16,13 @@ public interface WithdrawalDao {
     int countItems();
 
     @Query("SELECT * FROM withdrawal_list")
-    List<WithdrawalItem> getAll();
+    LiveData<List<WithdrawalItem>> getAll();
 
     @Query("DELETE FROM withdrawal_list")
     void nukeTable();
+
+    @Query("SELECT * FROM withdrawal_list WHERE id = :itemID")
+    WithdrawalItem getItem(int itemID);
+
 
 }

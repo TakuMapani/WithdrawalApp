@@ -11,18 +11,17 @@ public abstract class WithdrawalDatabase extends RoomDatabase {
 
     public abstract WithdrawalDao withdrawalDao();
 
-    private static WithdrawalDatabase INSTANCE;
+    private static volatile WithdrawalDatabase INSTANCE;
 
-    public static WithdrawalDatabase getDatabase(final Context context){
-        if (INSTANCE == null) {
-            synchronized (WithdrawalDatabase.class){
-                if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            WithdrawalDatabase.class,"Withdrawal_db")
-                            .build();
-                }
-            }
-        }
+     public static WithdrawalDatabase getDatabase(final Context context){
+         synchronized (WithdrawalDatabase.class){
+             if (INSTANCE == null) {
+                 INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
+                         WithdrawalDatabase.class,"Withdrawal_db")
+                         .build();
+             }
+         }
+
         return INSTANCE;
     }
 }
